@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Fredoka';
+  src: url('../assets/font/Fredoka.ttf');
+}
+
+.title {
+  font-family: 'Fredoka', Fallback, sans-serif;
+}
+
+.react-confirm-alert-firm-svg {
+  display: none;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #a0aec0;
+  border-radius: 8px;
+  border: 2px solid #f0f0f0;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #718096;
+}
+
+.scrollbar-thin {
+  scrollbar-gutter: stable both-edges;
+  direction: rtl;
+}
+
+.scrollbar-thin > div {
+  direction: ltr;
+}
