@@ -1,15 +1,17 @@
 import cv2
 import mediapipe as mp
 import time
-    
-# Inisialisasi Mediapipe
+import os
+from subprocess import run
+
+# Initialize Mediapipe
 mp_hands = mp.solutions.hands
 mp_pose = mp.solutions.pose
 hands = mp_hands.Hands()
 pose = mp_pose.Pose()
 mp_drawing = mp.solutions.drawing_utils
 
-# Fungsi untuk mengecek lima jari terbuka
+# Function to check if five fingers are open
 def is_five_fingers_open(hand_landmarks):
     fingers = [False] * 5
     if hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].y < hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_IP].y:
@@ -19,7 +21,7 @@ def is_five_fingers_open(hand_landmarks):
             fingers[i] = True
     return all(fingers)
 
-# Fungsi untuk mengecek tubuh terlihat sampai pinggang
+# Function to check if the body is visible up to the waist
 def is_body_visible(pose_landmarks):
     if not pose_landmarks:
         return False
@@ -43,25 +45,25 @@ while cap.isOpened():
     if not ret:
         break
 
-    # Konversi ke RGB
+    # Convert to RGB
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     image.flags.writeable = False
-    # Deteksi tangan
+    # Hand detection
     hand_results = hands.process(image)
-    # Deteksi pose
+    # Pose detection
     pose_results = pose.process(image)
 
     image.flags.writeable = True
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-    # Gambar landmark pose dan tangan
+    # Draw pose and hand landmarks
     if hand_results.multi_hand_landmarks:
         for hand_landmarks in hand_results.multi_hand_landmarks:
             mp_drawing.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
             if is_five_fingers_open(hand_landmarks):
                 hand_detected = True
                 countdown_started = True
-                start_time = time.time()  # Reset waktu mulai setiap kali tangan terdeteksi
+                start_time = time.time()  # Reset start time every time a hand is detected
 
     if pose_results.pose_landmarks:
         mp_drawing.draw_landmarks(image, pose_results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
@@ -74,13 +76,20 @@ while cap.isOpened():
                         cv2.putText(image, f'Capturing in {remaining_time}s', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
                     else:
                         print('Image capture')
-                        cv2.imwrite('captured_image.jpg', frame)
+                        captured_image_path = 'captured_image.jpg'
+                        cv2.imwrite(captured_image_path, frame)
                         countdown_started = False
-                        hand_detected = False  # Reset setelah capture
+                        hand_detected = False  # Reset after capture
+
+                        # Run OOTDiffusion model
+                        model_path = r"E:\Data_C\Documents\KULIAH\Codingan\Kerja\Gesture_capture\captured_image.jpg"
+                        cloth_path = r"E:\Data_C\Documents\KULIAH\Codingan\Kerja\Gesture_capture\Uji_ganti.jpg"
+                        run(["python", "OOTDiffusion/run/run_ootd.py", "--model_path", model_path, "--cloth_path", cloth_path, "--scale", "2.0", "--sample", "4"])
+
             else:
-                cv2.putText(image, 'Badan tidak terdeteksi', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                cv2.putText(image, 'Body not detected', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
                 countdown_started = False
-                hand_detected = False  # Reset jika tubuh tidak terlihat
+                hand_detected = False  # Reset if body is not visible
 
     cv2.imshow('Frame', image)
 
